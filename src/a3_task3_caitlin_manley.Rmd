@@ -1,0 +1,119 @@
+---
+title: "a3_task3_caitlin_manley"
+author: "Caitlin Manley"
+date: "11/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo = TRUE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(kableExtra)
+library(lubridate)
+```
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE}
+urchins_data <- read_csv(here("data" , "urchins.csv")) %>% 
+  clean_names()
+```
+
+# **Section 1.** Size Comparisons of Purple and Red Sea Urchins
+
+
+### 1.1) Here I compared the distribution of sizes between purple and red sea urchins using a faceted histogram and a boxplot
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE}
+urchins_data %>% 
+ group_by(common_name)
+
+ggplot(data = urchins_data, aes(x = size)) +
+  geom_histogram(bins=40,
+                 color = "blue",
+                 fill = "blue",
+                 alpha = 0.2) +
+  facet_wrap(~common_name) +
+  labs(y = "Number of Urchins", x = "Urchin Diameter (cm) ", title = "Comparison of Size Distribution Between Purple and Red Sea Urchins") +
+  theme_bw()
+
+
+```
+
+```{r}
+
+ggplot(data = urchins_data, aes(x = common_name, y = size)) +
+  geom_boxplot(color="blue",
+        fill="blue",
+        alpha=0.2,
+        outlier.colour="red",
+        outlier.fill="red") +
+  labs(x = NULL, y = "Urchin Diameter (cm)", title = "Comparison of Size Distribution Between Purple and Red Sea Urchins") +
+  theme_bw()
+
+```
+
+### 1.2) Here I created a descriptive statistics table for both purple and red sea urchins
+
+```{r}
+urchins_summary <- urchins_data %>% 
+  group_by() %>% 
+  summarize(mean = mean(size), median = median(size), sd = sd(size), n = n())
+
+
+  kbl(urchins_summary) %>% 
+  kable_styling()
+```
+
+**Summary of Section 1:**
+Based off my faceted histogram and boxplot, Red Urchins have a greater size distribution than Purple Urchins, meaning that the data for Red Urchins was more influenced by outliers or the sample size. The central tendency for Purple Urchins is much lower than the central tendency for Red Urchins. Overall, Red Urchins are larger in size and have a larger median value than Purple Urchins. 
+
+# **Section 2.** Purple Urchin Counts by Site and Year
+
+### 2.1) Here I created a stored subset of the Urchins Dataset called purple_urchins
+
+```{r}
+
+purple_urchins <- urchins_data %>% 
+  filter(common_name == "Purple Urchin") %>% 
+  mutate(date_new = mdy(date)) %>% 
+  mutate(year_new = year(date_new)) %>% 
+
+#class(urchins_dates$date_new)
+
+  mutate(site_full = case_when(
+    site == "NAPL" ~ "Naples Reef",
+    site == "AQUE" ~ "Arroyo Quemado Reef",
+    site == "CARP" ~ "Carpinteria Reef",
+    site == "MOHK" ~ "Mohawk Reef",
+    site == "IVEE" ~ "Isla Vista Reef"
+  )
+  )
+  
+```
+
+### 2.2) Here I made a summary table containg the total number of purple urchins observed by site and year
+
+```{r}
+purple_urchin_summary <- purple_urchins %>% 
+  select("year_new", "site_full") %>% 
+  count(site_full, year_new)
+```
+
+### 2.3) Here I made an exploratory graph of counts of purple urchins at each site over the years included in this study
+
+```{r}
+ggplot(data = purple_urchin_summary,
+       aes(x = year_new,
+           y = n)) +
+  geom_col(aes(color = site_full,
+               fill = site_full,
+               alpha = 0.2)) + 
+  facet_wrap(~site_full) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(x = NULL, y = "Count")
+
+```
+
+## End Assignment 3, Task 3
